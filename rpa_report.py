@@ -80,9 +80,27 @@ if uploaded_file is not None:
     totals = df_show[cols].sum(axis=0)
     df_aug = pd.DataFrame([['汇总']+totals.values.tolist()],columns= df_show.columns)
     df_show_total = pd.concat([df_show,df_aug],axis=0)
+
+
+    # 调整除了"其他""合计"列放在最后，剩下的列按照合计从大到小 从左往后排列
+
+    # 筛选没有合计行的数据
+    df_without_total = df_show_total[df_show_total['机构'] != '合计']
+    # 筛选合计行的数据
+    df_total = df_show_total[df_show_total['机构'] == '合计']  
+
+    # 对列按照合计行从大到小 从左到右 排序
+    sorted_cols = df_without_total.loc[:, bank_columns_list].sum(axis=0).sort_values(ascending=False).index  
+    # 添加 机构 其他 合计 三列，保持机构在第一列，其他和合计在最后
+    sorted_cols_all = ['机构'] + sorted_cols.tolist() +  ['其他','合计'] 
+    # 对数据列重新排序
+    df_sorted = df_without_total[sorted_cols_all]  
+    # 合并"合计"行
+    df_final = pd.concat([df_sorted, df_total]).reset_index(drop=True)
+    
  
     # 展示结果数据
-    st.dataframe(data=df_show_total.reset_index(drop=True),use_container_width=True)
+    st.dataframe(data=df_final.reset_index(drop=True),use_container_width=True)
 
 
     # 文字生成
@@ -98,11 +116,3 @@ if uploaded_file is not None:
     string = " 【⻰庭战报】截⽌⽬前当⽇期交开单⽹点数为 " + str(all) + " 个，前三名分别为：" + str(first_branch) + str(first_branch_value) + "个，" + str(second_branch) + str(second_branch_value) + "个，" + str(third_branch) + str(third_branch_value) + "个，望各机构紧盯渠道每⽇期交开单⽹点数，确保期交保费达成。"
 
 
-    st.markdown(string)
-    
-    st.markdown("")
-    st.markdown("")
-    st.markdown("")
-    st.markdown("")
-
-    st.text("Copyright ©2024 sunyang")
