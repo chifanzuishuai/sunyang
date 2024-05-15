@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 import openpyxl
 
+
 st.set_page_config(layout="wide")
 
 st.title('RPA reports')
@@ -33,7 +34,7 @@ if uploaded_file is not None:
     # 获取所有的列名list
     columns_list = [col for col in df_pivot.columns if col != '机构']
     # 计算"合计"
-    df_pivot['合计'] =  df_pivot.loc[:, columns_list].sum(axis=1) 
+    df_pivot['小计'] =  df_pivot.loc[:, columns_list].sum(axis=1) 
     # 计算双邮
     df_pivot['双邮'] =  df_pivot['中国邮政储蓄银行'] + df_pivot['邮政局'] 
     # 重命名银行简称
@@ -49,7 +50,7 @@ if uploaded_file is not None:
     # 筛选有数据的字段
     existing_columns = [col for col in bank_columns_list if col in df_pivot.columns] 
     # 展示字段list
-    existing_columns = ['机构'] + existing_columns + ['其他','合计']
+    existing_columns = ['机构'] + existing_columns + ['其他','小计']
     # 展示有数据的字段
     df_pivot = df_pivot[existing_columns]
 
@@ -57,7 +58,7 @@ if uploaded_file is not None:
     # 绘制最终展示表格
     # 定义行索引和列名  
     rows = ['广东', '山东', '河南', '安徽', '湖南', '陕西', '四川', '江苏', '河北', '内蒙古', '江西', '浙江', '云南', '青岛', '上海', '宁波', '东莞', '深圳', '天津', '北京', '海南', '黑龙江', '苏州', '无锡']  
-    cols = bank_columns_list +  ['其他','合计'] 
+    cols = bank_columns_list +  ['其他','小计'] 
 
     # 创建一个空的DataFrame，索引为行名，列为列名  
     df_show = pd.DataFrame(index=rows, columns=cols)
@@ -73,7 +74,7 @@ if uploaded_file is not None:
     # 重置索引
     df_show = df_show.reset_index().rename(columns={'index': '机构'})
     # 按照"合计"降序排列
-    df_show = df_show.sort_values(by='合计', ascending=False)
+    df_show = df_show.sort_values(by='小计', ascending=False)
     
 
     # 计算所有列的合计
@@ -92,20 +93,25 @@ if uploaded_file is not None:
     # 对列按照合计行从大到小 从左到右 排序
     sorted_cols = df_without_total.loc[:, bank_columns_list].sum(axis=0).sort_values(ascending=False).index  
     # 添加 机构 其他 合计 三列，保持机构在第一列，其他和合计在最后
-    sorted_cols_all = ['机构'] + sorted_cols.tolist() +  ['其他','合计'] 
+    sorted_cols_all = ['机构'] + sorted_cols.tolist() +  ['其他','小计'] 
     # 对数据列重新排序
     df_sorted = df_without_total[sorted_cols_all]  
     # 合并"合计"行
     df_final = pd.concat([df_sorted, df_total]).reset_index(drop=True)
-    
- 
+
+    df_final.insert(0, '排名', df_final.index + 1)
+
+   
     # 展示结果数据
-    st.dataframe(data=df_final.reset_index(drop=True),use_container_width=True)
+    st.dataframe(data=df_final.reset_index(drop=True),use_container_width=True,hide_index=True)
+
+
+
 
 
     # 文字生成
 
-    all = df_show['合计'].sum(axis=0)
+    all = df_show['小计'].sum(axis=0)
     first_branch = df_show.iloc[0,0]
     second_branch = df_show.iloc[1,0]
     third_branch = df_show.iloc[2,0]
@@ -116,3 +122,5 @@ if uploaded_file is not None:
     string = " 【⻰庭战报】截⽌⽬前当⽇期交开单⽹点数为 " + str(all) + " 个，前三名分别为：" + str(first_branch) + str(first_branch_value) + "个，" + str(second_branch) + str(second_branch_value) + "个，" + str(third_branch) + str(third_branch_value) + "个，望各机构紧盯渠道每⽇期交开单⽹点数，确保期交保费达成。"
 
 
+    st.markdown(string)
+    
