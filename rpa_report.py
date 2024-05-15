@@ -44,7 +44,7 @@ if uploaded_file is not None:
     # 展示的银行列名
     bank_columns_list = ['双邮','农行', '工行', '建行', '中行', '中信', '交行', '光大', '浦发', '兴业', '招行', '广发', '民生']
     # 获取其他银行列名list
-    other_columns_list = [x for x in renname_columns_list if x not in ['合计','机构','中国邮政储蓄银行','邮政局'] and x not in bank_columns_list] 
+    other_columns_list = [x for x in renname_columns_list if x not in ['小计','机构','中国邮政储蓄银行','邮政局'] and x not in bank_columns_list] 
     # 计算"其他"
     df_pivot['其他'] =  df_pivot.loc[:, other_columns_list].sum(axis=1) 
     # 筛选有数据的字段
